@@ -1,0 +1,142 @@
+Eliptic Curve Cryptography - ECC
+quantum computing - will make RSA obsolete
+Bitcoin uses ECC
+
+To be a non singular elliptic curve there is a constraints 4a^3+27b^2 != 0
+y^2 = x^3 +ax+b -- tipical equation for a non singular eliptic curve  -> dealing with 2 dimensions
+For cryptocurrencies - bitcoin a = 0, b=7 check how it looks on desmos.com/calculator
+
+if  4a^3+27b^2 = 0 ==> elliptic curve is singular which means it doesnt have 3 distinct roots
+
+ECC Features
+1. elliptic curves are symmetric along x axis ==> -P(x,y) = P(x,-y)
+
+2 . A straight line meets the x axis either at 1 or 3 points
+
+3. Elliptic curves are non singular -- 4a^3+27b^2 =! 0
+
+How to find x3 and y3 variables
+
+x3 = m^2 -x1-x2
+y3 = m* (x1-x3)-y1
+
+m - slope of a straight line
+how to find m?
+-> if there are 2 distinc points
+ m = (y2-y1)/(x2-x1)
+-> if there is the same point  - point doubling  => use derivates
+
+ elliptic curve equation y^2 = x^3 +ax+b ==> 2y = 3x^2 +a ==>  m = ( 3x^2 +a)/2y
+
+
+
+ 26 in decimal = 11010 binary
+ Ignore first digit - for 1 double and add  - for 0 just double
+ 1 - SKIP ==> P
+ 1 -> 2P+P = 3P
+ 0 -> 6P
+ 1 - > 12P +P = 13P
+ 0 = > 26P
+
+
+ Eliptic Curve Diffie-Hellman Algorithnm
+ Public:
+ -> y^2 = x^3 +ax+b
+ -> R(x,y) generator point
+
+
+
+
+Signature ECDSA
+Singing Steps
+1. Generate hash h of the message
+2. Generate a random number k
+3. Compute R = k*G -> user r = Rx mod n
+4. Compute s = k ^-1(h+r*d) mod n
+5. Signature = (r,s)
+
+
+Hashing
+-> map data to a bit array of a fixed size
+-> all ops are public
+-> no private keys
+-> it's deterministic and random
+
+
+MD5 - d is 128 bits
+SHA1- d is 160 bits
+SHA2 - d is 256 bits
+
+Properties of Hashing
+-> pre-image resistance : it is exponentially hard to determine the m message from h(m) message digest
+-> second pre-image resistance : if m1 is given then it infesibile to find m2 such that h(m1) = h(m2)
+-> collision resistance: it is infeasible to find any m1 and m2 messages such that h(m1)=h(m2).
+
+
+
+
+CERTIFICATE - digital entity - a simple file with same data
+-> Information about owner - company name, address, website etc, sometimes serial no of certificate
+-> Information about issuer - entity that signed the certificate - CA or intermediatae CA
+-> Signature - using Asymmetric Keys -  encrypted with Private key Hash of certificate
+-> Public Key - always belongs to the owner of certificate
+
+create a public key from private key openssl rsa -in .\private.pem -outform PEM -pubout -out public.pem
+
+
+ROOT CA - Is located at the top of the chain.
+How web browsers trust the root certificate - There is a list of certificates in OS
+
+establish trust between browser and web server - Certificate
+
+SSL - secure sockets layer
+TLS - transport layer security
+Both are cryptographic protocols
+
+What's the connection between ssl tls and certificate? => Certificate is not dependent on a protocol and can be used both.
+
+openssl rsa -in udemy-rsa.pem -pubout -text
+openssl rsa -in udemy-rsa.pem -pubout -out udemy-rsa-public.pem
+
+openssl pkeyutl -encrypt -inkey .\udemy-rsa-public.pem -pubin -in .\file.txt -out encrypted-file.txt //this is how to encrypt a file
+-inkey is waiting for a private key by default
+
+openssl pkeyutl -decrypt -inkey .\udemy-rsa.pem -in .\encrypted-file.txt -out decrypted-file.txt
+
+
+Eliptic curve with openssl
+
+openssl ecparam -genkey -name prime256v1 -out ecc-private-key.pem
+if i will use -noout param will remove the ec parameters
+
+PEM format = privary enchanced mail - refers to the base64 wrapper for a binary format cointained within, but does not speciy ant type or format
+	for the binary data so that a pem file may contain almost anything base64 encoded and wrapped with beghind and end lines
+DER format = created and stored in binary format so it isa a binary encoding for x509 certs and private keys .
+
+openssl ec -in .\ecc-private-key.pem -text
+
+PS C:\Users\T0318129> openssl ec -in .\ecc-private-key.pem -text
+read EC key
+Private-Key: (256 bit)
+priv: -- private key - 256 bit long integer
+    a4:2d:80:29:55:b2:65:6e:9a:da:da:6a:dd:ea:81:
+    d1:01:7e:0c:d1:82:d0:e8:2b:82:fe:60:f7:33:2e:
+    63:f0
+pub: -- public key (a point in curve ) first part of public key  is 256 x coordinate and the second is 256 y coordinate  -- P (x,y)
+    04:60:8a:50:c6:c2:32:be:65:17:f6:a8:ce:83:2c:
+    a6:7c:5c:72:cc:af:a0:bf:8a:c5:78:05:9a:70:0e:
+    c1:54:97:e1:fe:07:87:b3:9f:ae:2c:78:81:3f:32:
+    8f:86:28:4f:43:cc:91:79:70:4c:8a:2a:26:bd:39:
+    8b:00:d5:45:46
+ASN1 OID: prime256v1
+NIST CURVE: P-256
+writing EC key
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIKQtgClVsmVumtraat3qgdEBfgzRgtDoK4L+YPczLmPwoAoGCCqGSM49
+AwEHoUQDQgAEYIpQxsIyvmUX9qjOgyymfFxyzK+gv4rFeAWacA7BVJfh/geHs5+u
+LHiBPzKPhihPQ8yReXBMiiomvTmLANVFRg==
+-----END EC PRIVATE KEY-----
+
+How to get public key?
+openssl ec -in .\ecc-private-key.pem -pubout -out ecc-public.pem
+
